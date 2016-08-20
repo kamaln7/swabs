@@ -13,12 +13,6 @@ type Ink struct {
 	name, url, donor string
 }
 
-func FatalOnErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func CreateTable(tx *sql.Tx) {
 	schema := `
 	CREATE TABLE IF NOT EXISTS swabs (
@@ -29,7 +23,9 @@ func CreateTable(tx *sql.Tx) {
 	)`
 
 	_, err := tx.Exec(schema)
-	FatalOnErr(err)
+	if err != nil {
+		log.Fatalf("Could not initialize SQL database: %s\n", err)
+	}
 }
 
 func main() {
@@ -37,55 +33,69 @@ func main() {
 	defer db.Close()
 
 	file, err := os.Open("./data.csv")
-	FatalOnErr(err)
+	if err != nil {
+		log.Fatalf("Could not open SQL database: %s\n", err)
+	}
 	defer file.Close()
 
 	var cols []string = nil
 	log.Print("Starting SQL transaction")
 	tx, err := db.Begin()
-	FatalOnErr(err)
+	if err != nil {
+		log.Fatalf("An SQL error occurred: %s\n", err)
+	}
 	defer tx.Commit()
 
 	CreateTable(tx)
 
 	insert, err := tx.Prepare("insert into swabs(name, url, donor) values (?, ?, ?)")
-	FatalOnErr(err)
+	if err != nil {
+		log.Fatalf("An error occured while preparing the SQL query: %s\n", err)
+	}
 
 	reader := csv.NewReader(file)
 	for {
 		row, err := reader.Read()
 		if err != nil {
 			if err == io.EOF {
+				log.Print("Reached end of file\n")
 				break
 			}
 
-			log.Print(err)
-			continue
+			if perr, ok := err.(*csv.ParseError); ok {
+				log.Printf("Could not parse line %d column %d: %s\n", perr.Line, perr.Column, perr.Err)
+				continue
+			}
+
+			// unknown error, probably best to exit
+			log.Print("Rolling back SQL transaction\n")
+			tx.Rollback()
+			log.Fatalf("An unexpected error occured: %s\n", err)
 		}
 
 		if cols == nil {
 			cols = row
-		} else {
-			var swab Ink
-			for i, v := range row {
-				switch cols[i] {
-				case "Name":
-					swab.name = v
-				case "Imgur Address":
-					swab.url = v
-				case "Donated by":
-					swab.donor = v
-				}
+			continue
+		}
 
+		var swab Ink
+		for i, v := range row {
+			switch cols[i] {
+			case "Name":
+				swab.name = v
+			case "Imgur Address":
+				swab.url = v
+			case "Donated by":
+				swab.donor = v
 			}
 
-			log.Printf("--> Importing [%s]\n", swab.name)
-			_, err = insert.Exec(swab.name, swab.url, swab.donor)
-			if err != nil {
-				log.Printf("<-- Error importing [%s]\n", swab.name)
-				log.Printf("<-- %s\n", err.Error())
-				continue
-			}
+		}
+
+		log.Printf("Importing [%s]\n", swab.name)
+		_, err = insert.Exec(swab.name, swab.url, swab.donor)
+		if err != nil {
+			log.Printf("Error importing [%s]: %s\n", swab.name, err)
+			continue
 		}
 	}
 }
