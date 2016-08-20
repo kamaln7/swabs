@@ -1,0 +1,6 @@
+all:
+	go build -v ./cmd/importcsv/...
+	go build -v ./cmd/api/...
+.PHONY: all clean
+clean:
+	rm ./api ./importcsv
