@@ -3,19 +3,16 @@ package main
 import (
 	"database/sql"
 	"encoding/csv"
+	"github.com/kamaln7/swabs"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
 	"log"
 	"os"
 )
 
-type Ink struct {
-	name, url, donor string
-}
-
 func CreateTable(tx *sql.Tx) {
 	schema := `
-	CREATE TABLE IF NOT EXISTS swabs (
+	CREATE TABLE IF NOT EXISTS inks (
 		id INTEGER PRIMARY KEY,
 		name TEXT UNIQUE,
 		url TEXT,
@@ -78,23 +75,23 @@ func main() {
 			continue
 		}
 
-		var swab Ink
+		var swab swabs.Ink
 		for i, v := range row {
 			switch cols[i] {
 			case "Name":
-				swab.name = v
+				swab.Name = v
 			case "Imgur Address":
-				swab.url = v
+				swab.URL = v
 			case "Donated by":
-				swab.donor = v
+				swab.Donor = v
 			}
 
 		}
 
-		log.Printf("Importing [%s]\n", swab.name)
-		_, err = insert.Exec(swab.name, swab.url, swab.donor)
+		log.Printf("Importing [%s]\n", swab.Name)
+		_, err = insert.Exec(swab.Name, swab.URL, swab.Donor)
 		if err != nil {
-			log.Printf("Error importing [%s]: %s\n", swab.name, err)
+			log.Printf("Error importing [%s]: %s\n", swab.Name, err)
 			continue
 		}
 	}
