@@ -4,8 +4,10 @@
 
 - `make` - build all binaries
 - `make clean` - delete all compiled binaries
-- `make import-dev` - wipe database, compile, and ./importcsv
-- `make api-dev` - compile and ./api
+- `make importcsv` - compile importcsv
+- `make api` - compile api
+- `make importcsv-dev` - wipe database, compile, and run ./importcsv
+- `make api-dev` - compile and run ./api
 
 ## binaries
 

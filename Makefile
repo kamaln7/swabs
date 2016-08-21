@@ -1,10 +1,14 @@
-.PHONY: all clean import-dev api-dev
+.PHONY: all clean importcsv-dev api-dev api importcsv
 all:
-	go build -v ./cmd/importcsv/...
-	go build -v ./cmd/api/...
+	make importcsv
+	make api
 clean:
 	rm ./api ./importcsv
-import-dev:
+api:
+	go build -v ./cmd/api/...
+importcsv:
+	go build -v ./cmd/importcsv/...
+importcsv-dev:
 	cat /dev/null > db.sql && make && ./importcsv
 api-dev:
-	make && ./api
+	make api && ./api
