@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/csv"
+	"github.com/Machiel/slugify"
 	"github.com/kamaln7/swabs"
 	_ "github.com/mattn/go-sqlite3"
 	"io"
@@ -16,7 +17,9 @@ func CreateTable(tx *sql.Tx) {
 	CREATE TABLE IF NOT EXISTS inks (
 		id INTEGER PRIMARY KEY,
 		brand TEXT not null,
+		brand_slug TEXT not null,
 		name TEXT not null,
+		name_slug TEXT not null,
 		url TEXT not null,
 		donor TEXT
 	)
@@ -109,7 +112,7 @@ func main() {
 
 	CreateTable(tx)
 
-	insert, err := tx.Prepare("insert into inks(brand, name, url, donor) values (?, ?, ?, ?)")
+	insert, err := tx.Prepare("insert into inks(brand, brand_slug, name, name_slug, url, donor) values (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatalf("An error occured while preparing the SQL query: %s\n", err)
 	}
@@ -173,7 +176,14 @@ func main() {
 		}
 
 		log.Printf("Importing [%s] - [%s]\n", swab.Brand, swab.Name)
-		_, err = insert.Exec(swab.Brand, swab.Name, swab.URL, swab.Donor)
+		_, err = insert.Exec(
+			swab.Brand,
+			slugify.Slugify(swab.Brand),
+			swab.Name,
+			slugify.Slugify(swab.Name),
+			swab.URL,
+			swab.Donor,
+		)
 		if err != nil {
 			log.Printf("Error importing [%s] - [%s]: %s\n", swab.Brand, swab.Name, err)
 			continue
