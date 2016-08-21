@@ -1,5 +1,5 @@
 package swabs
 
 type Ink struct {
-	Name, URL, Donor string
+	Brand, Name, URL, Donor string
 }
