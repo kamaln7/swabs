@@ -52,7 +52,7 @@ func GetBrands(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(brands)
 }
 
-func GetBrand(w http.ResponseWriter, r *http.Request) {
+func GetBrandInks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	brandSlug := vars["brandSlug"]
 
@@ -127,7 +127,7 @@ func main() {
 
 	r := mux.NewRouter().PathPrefix("/v1/").Subrouter()
 	r.HandleFunc("/brands", GetBrands).Methods("GET")
-	r.HandleFunc("/brands/{brandSlug}", GetBrand).Methods("GET")
+	r.HandleFunc("/brands/{brandSlug}/inks", GetBrandInks).Methods("GET")
 	r.HandleFunc("/brands/{brandSlug}/inks/{inkSlug}", GetInk).Methods("GET")
 
 	address := os.Getenv("API_ADDR")

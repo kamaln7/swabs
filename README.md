@@ -17,4 +17,5 @@
         - `API_ADDR` - the host:port to listen on
     - api paths:
         - `/v1/brands` - get a JSON array of the brands present in the database
-
+        - `/v1/brands/{brand_name}/inks` - get a JSON array of {brand_name}'s inks
+        - `/v1/brands/{brand_name}/inks/{ink_name}` - get a JSON object with info about {brand_name}'s {ink_name}
