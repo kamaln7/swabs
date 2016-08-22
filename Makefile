@@ -9,6 +9,6 @@ api:
 importcsv:
 	go build -v ./cmd/importcsv/...
 importcsv-dev:
-	cat /dev/null > db.sql && make && ./importcsv
+	make importcsv && cat /dev/null > db.sql && ./importcsv
 api-dev:
 	make api && ./api
